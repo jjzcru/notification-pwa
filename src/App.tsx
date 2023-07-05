@@ -4,6 +4,7 @@ import viteLogo from '/vite.svg';
 import './App.css';
 import { MessagePayload, onMessage } from 'firebase/messaging';
 import { getFirebaseToken, messaging } from './FirebaseConfig';
+import firebase from 'firebase/compat/app';
 
 interface NotificationPayloadProps {
 	data?: MessagePayload | undefined;
@@ -15,6 +16,7 @@ function App() {
 	const [notificationPayload, setNotificationPayload] = useState<
 		(NotificationPayloadProps | undefined)[]
 	>([]);
+	const [token, setToken] = useState(localStorage.getItem('token'))
 
 	// This is self invoking function that listen of the notification
 	/*const onMessageListener = (async () => {
@@ -31,17 +33,41 @@ function App() {
 	})();*/
 
 	useEffect(() => {
-		onMessage(messaging, (payload) => {
-			console.log('Message received. ', payload);
-			// ...
+		if(!token) {
+			return;
+		}
+		onMessage(messaging, (payload: MessagePayload) => {
+			setNotificationPayload([{ data: payload, open: true }])
+			console.log('Message received in the foreground', payload);
 		});
-	}, [messaging]);
+	}, [token]);
+
+	useEffect(() => {
+		if(!notificationPayload.length) {
+			return;
+		}
+		
+		if(Notification?.permission === 'granted') {
+			// alert(`GRANTED`)
+			const {notification} = notificationPayload?.[0]?.data;
+			console.log(`TAN TAN TAN`);
+			const greeting = new Notification(notification.title);
+			if(navigator?.setAppBadge) {
+				navigator.setAppBadge();
+			}
+		} else {
+			alert(`DENIED`)
+		}
+			
+	}, [notificationPayload])
 
 	const handleGetFirebaseToken = () => {
 		getFirebaseToken().then((firebaseToken: string | undefined) => {
-			if (firebaseToken) {
-				console.log(firebaseToken);
+			if (!firebaseToken) {
+				return
 			}
+			localStorage.setItem('token', firebaseToken)
+			setToken(firebaseToken)
 		});
 	};
 
@@ -67,10 +93,10 @@ function App() {
 				</div>
 			)}
 			<div>
-				<a href="https://vitejs.dev" target="_blank">
+				<a rel="noopener" href="https://vitejs.dev" target="_blank">
 					<img src={viteLogo} className="logo" alt="Vite logo" />
 				</a>
-				<a href="https://react.dev" target="_blank">
+				<a rel="noopener" href="https://react.dev" target="_blank">
 					<img
 						src={reactLogo}
 						className="logo react"
@@ -86,6 +112,17 @@ function App() {
 				<p>
 					Edit <code>src/App.tsx</code> and save to test HMR
 				</p>
+				{token && <button onClick={() => {
+					if(token) {
+					console.log(token)
+					navigator.clipboard.writeText(token);
+					alert('Copy to clipboard')
+					}
+					
+				}}>
+					Copy Token
+				</button>}
+				
 			</div>
 			<p className="read-the-docs">
 				Click on the Vite and React logos to learn more

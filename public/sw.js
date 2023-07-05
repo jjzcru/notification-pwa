@@ -34,11 +34,23 @@ const defaultConfig = {
 	appId: true,
 };
 
+const config = {
+	apiKey: 'AIzaSyDZzlvHp5j7egHtAurfRFFBDaoe8_gRp5I',
+	authDomain: 'canvasflow-pwa-notification.firebaseapp.com',
+	projectId: 'canvasflow-pwa-notification',
+	storageBucket: 'canvasflow-pwa-notification.appspot.com',
+	messagingSenderId: '880035567337',
+	appId: '1:880035567337:web:a971a90585638771eac278',
+	measurementId: 'G-6BQCMFV74Q',
+};
+console.log(`Background config:`, config)
+
 // Initialize Firebase app
-firebase.initializeApp(self.firebaseConfig || defaultConfig);
+firebase.initializeApp(config);
 let messaging;
 try {
 	messaging = firebase.messaging();
+	console.log(`We got messaging`, messaging)
 } catch (err) {
 	console.error('Failed to initialize Firebase Messaging', err);
 }
